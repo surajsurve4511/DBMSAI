@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Ward Management - Hospital Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <h1 class="h2 fw-bold"><i class="bi bi-building text-primary"></i> Ward Management</h1>
+        <p class="text-muted">Monitor and manage hospital wards and bed allocation</p>
+    </div>
+
+    <!-- Bed Statistics -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="stat-card card-primary">
+                <div class="stat-icon">
+                    <i class="bi bi-hospital"></i>
+                </div>
+                <div class="stat-details">
+                    <h3 class="stat-number">{{ bed_stats.total }}</h3>
+                    <p class="stat-label">Total Beds</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card card-success">
+                <div class="stat-icon">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="stat-details">
+                    <h3 class="stat-number">{{ bed_stats.available }}</h3>
+                    <p class="stat-label">Available Beds</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card card-warning">
+                <div class="stat-icon">
+                    <i class="bi bi-person-fill"></i>
+                </div>
+                <div class="stat-details">
+                    <h3 class="stat-number">{{ bed_stats.occupied }}</h3>
+                    <p class="stat-label">Occupied Beds</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- General Ward -->
+    <div class="card modern-card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-hospital text-primary"></i> General Ward</h5>
+        </div>
+        <div class="card-body">
+            <div class="bed-grid">
+                {% for bed in general_ward %}
+                <div class="bed-box {{ 'occupied' if bed.patient_id else 'available' }}">
+                    <div class="bed-number">Bed {{ bed.bed_no }}</div>
+                    {% if bed.patient_id %}
+                        <div class="bed-patient">
+                            <i class="bi bi-person-fill"></i>
+                            <small>{{ bed.patient_name }}</small>
+                        </div>
+                        {% if bed.diagnosis %}
+                            <div class="bed-diagnosis">
+                                <small>{{ bed.diagnosis[:20] }}...</small>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="bed-available">
+                            <i class="bi bi-check-circle"></i>
+                            <small>Available</small>
+                        </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ICU -->
+    <div class="card modern-card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-heart-pulse text-danger"></i> Intensive Care Unit (ICU)</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>ICU ID</th>
+                            <th>Bed/Device ID</th>
+                            <th>Patient</th>
+                            <th>Diagnosis</th>
+                            <th>Live Health Data</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for icu in icu_beds %}
+                        <tr>
+                            <td><span class="badge bg-danger">{{ icu.icu_id }}</span></td>
+                            <td>{{ icu.bed_device_id }}</td>
+                            <td class="fw-semibold">{{ icu.patient_name if icu.patient_name else 'Available' }}</td>
+                            <td>{{ icu.diagnosis[:40] if icu.diagnosis else '-' }}</td>
+                            <td>
+                                {% if icu.live_health_data %}
+                                    <span class="badge bg-success">Monitoring</span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Special Rooms -->
+    <div class="card modern-card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-door-open text-info"></i> Special Rooms</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Room ID</th>
+                            <th>Room Type</th>
+                            <th>Patient</th>
+                            <th>Diagnosis</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for room in special_rooms %}
+                        <tr>
+                            <td><span class="badge bg-info">{{ room.room_id }}</span></td>
+                            <td>{{ room.room_type_name }}</td>
+                            <td class="fw-semibold">{{ room.patient_name if room.patient_name else '-' }}</td>
+                            <td>{{ room.diagnosis[:40] if room.diagnosis else '-' }}</td>
+                            <td>
+                                {% if room.patient_id %}
+                                    <span class="badge bg-warning">Occupied</span>
+                                {% else %}
+                                    <span class="badge bg-success">Available</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

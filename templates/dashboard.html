@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Hospital Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 fw-bold"><i class="bi bi-speedometer2 text-primary"></i> Dashboard</h1>
+            <p class="text-muted">Welcome to MediCare Hospital Management System</p>
+        </div>
+        <div class="text-end">
+            <p class="mb-0 text-muted">{{ now.strftime('%B %d, %Y') if now else '' }}</p>
+            <h4 class="mb-0" id="current-time"></h4>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card card-primary">
+                <div class="stat-icon">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <div class="stat-details">
+                    <h3 class="stat-number">{{ stats.total_patients }}</h3>
+                    <p class="stat-label">Total Patients</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card card-success">
+                <div class="stat-icon">
+                    <i class="bi bi-hospital-fill"></i>
+                </div>
+                <div class="stat-details">
+                    <h3 class="stat-number">{{ stats.active_admissions }}</h3>
+                    <p class="stat-label">Active Admissions</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card card-warning">
+                <div class="stat-icon">
+                    <i class="bi bi-calendar-check-fill"></i>
+                </div>
+                <div class="stat-details">
+                    <h3 class="stat-number">{{ stats.today_appointments }}</h3>
+                    <p class="stat-label">Today's Appointments</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card card-info">
+                <div class="stat-icon">
+                    <i class="bi bi-scissors"></i>
+                </div>
+                <div class="stat-details">
+                    <h3 class="stat-number">{{ stats.scheduled_operations }}</h3>
+                    <p class="stat-label">Scheduled Operations</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Suggestions -->
+    {% if ai_suggestions %}
+    <div class="card modern-card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-robot text-primary"></i> AI-Powered Insights</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                {% for suggestion in ai_suggestions %}
+                <div class="col-md-6">
+                    <div class="alert alert-{{ 'danger' if suggestion.priority == 'high' else 'warning' if suggestion.priority == 'medium' else 'info' }} mb-0">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-{{ 'exclamation-triangle-fill' if suggestion.priority == 'high' else 'info-circle-fill' }} fs-4 me-3"></i>
+                            <div>
+                                <h6 class="alert-heading mb-1">{{ suggestion.category }}</h6>
+                                <p class="mb-0">{{ suggestion.message }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row g-4">
+        <!-- Recent Patients -->
+        <div class="col-lg-6">
+            <div class="card modern-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-people text-primary"></i> Recent Patients</h5>
+                    <a href="{{ url_for('patients') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Age</th>
+                                    <th>Gender</th>
+                                    <th>Contact</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for patient in recent_patients %}
+                                <tr onclick="window.location.href='{{ url_for('patient_detail', patient_id=patient.patient_id) }}'" style="cursor: pointer;">
+                                    <td><span class="badge bg-primary">{{ patient.patient_id }}</span></td>
+                                    <td class="fw-semibold">{{ patient.name }}</td>
+                                    <td>{{ patient.age }}</td>
+                                    <td>{{ patient.gender }}</td>
+                                    <td>{{ patient.contact_info }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Today's Appointments -->
+        <div class="col-lg-6">
+            <div class="card modern-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-calendar-check text-success"></i> Today's Appointments</h5>
+                    <a href="{{ url_for('opd_appointments') }}" class="btn btn-sm btn-outline-success">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if today_appointments %}
+                        <div class="list-group list-group-flush">
+                            {% for appt in today_appointments[:5] %}
+                            <div class="list-group-item px-0">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">{{ appt.patient_name }}</h6>
+                                        <small class="text-muted">
+                                            <i class="bi bi-person-badge"></i> Dr. {{ appt.staff_name }}
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-success">{{ appt.appointment_date|datetime('%I:%M %p') }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-3">No appointments scheduled for today</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Admissions -->
+        <div class="col-lg-12">
+            <div class="card modern-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-hospital text-danger"></i> Active Admissions</h5>
+                    <a href="{{ url_for('patient_reports') }}" class="btn btn-sm btn-outline-danger">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Report ID</th>
+                                    <th>Patient Name</th>
+                                    <th>Age</th>
+                                    <th>Diagnosis</th>
+                                    <th>Admitted On</th>
+                                    <th>Days Admitted</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for report in active_reports[:10] %}
+                                <tr>
+                                    <td><span class="badge bg-danger">{{ report.report_id }}</span></td>
+                                    <td class="fw-semibold">{{ report.patient_name }}</td>
+                                    <td>{{ report.age }}</td>
+                                    <td>{{ report.diagnosis[:50] }}...</td>
+                                    <td>{{ report.in_date_time|datetime }}</td>
+                                    <td>
+                                        {% set days = ((now - report.in_date_time).days) if report.in_date_time else 0 %}
+                                        <span class="badge bg-{{ 'danger' if days > 7 else 'warning' if days > 3 else 'info' }}">
+                                            {{ days }} days
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Update current time
+    function updateTime() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            second: '2-digit' 
+        });
+        document.getElementById('current-time').textContent = timeString;
+    }
+    updateTime();
+    setInterval(updateTime, 1000);
+</script>
+{% endblock %}

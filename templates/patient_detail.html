@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}{{ patient.name }} - Patient Details{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <a href="{{ url_for('patients') }}" class="btn btn-outline-secondary mb-3">
+            <i class="bi bi-arrow-left"></i> Back to Patients
+        </a>
+        <h1 class="h2 fw-bold"><i class="bi bi-person-circle text-primary"></i> Patient Profile</h1>
+    </div>
+
+    <div class="row g-4">
+        <!-- Patient Information -->
+        <div class="col-lg-4">
+            <div class="card modern-card">
+                <div class="card-header">
+                    <h5 class="mb-0">Patient Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="patient-avatar mx-auto">
+                            <i class="bi bi-person-circle"></i>
+                        </div>
+                        <h4 class="mt-3">{{ patient.name }}</h4>
+                        <p class="text-muted">ID: {{ patient.patient_id }}</p>
+                    </div>
+                    <hr>
+                    <div class="info-row">
+                        <span class="info-label"><i class="bi bi-calendar"></i> Age:</span>
+                        <span class="info-value">{{ patient.age }} years</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label"><i class="bi bi-gender-ambiguous"></i> Gender:</span>
+                        <span class="info-value">{{ patient.gender }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label"><i class="bi bi-telephone"></i> Contact:</span>
+                        <span class="info-value">{{ patient.contact_info }}</span>
+                    </div>
+                    <hr>
+                    <a href="{{ url_for('edit_patient', patient_id=patient.patient_id) }}" class="btn btn-warning w-100">
+                        <i class="bi bi-pencil"></i> Edit Information
+                    </a>
+                </div>
+            </div>
+
+            <!-- AI Risk Assessment -->
+            {% if risk_analysis %}
+            <div class="card modern-card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-robot text-primary"></i> AI Risk Assessment</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="risk-score risk-{{ risk_analysis.color }}">
+                            {{ risk_analysis.risk_score }}
+                        </div>
+                        <h5 class="mt-2">Risk Level: <span class="badge bg-{{ risk_analysis.color }}">{{ risk_analysis.risk_level }}</span></h5>
+                    </div>
+                    <hr>
+                    <h6 class="mb-2">Recommendations:</h6>
+                    <ul class="list-unstyled">
+                        {% for rec in risk_analysis.recommendations %}
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success"></i> {{ rec }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Medical History & Health Insights -->
+        <div class="col-lg-8">
+            {% if health_insights %}
+            <div class="card modern-card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-heart-pulse text-danger"></i> Health Insights</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="insight-box">
+                                <div class="insight-value">{{ health_insights.health_score }}</div>
+                                <div class="insight-label">Health Score</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="insight-box">
+                                <div class="insight-value">{{ health_insights.total_visits }}</div>
+                                <div class="insight-label">Total Visits</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="insight-box">
+                                <div class="insight-value">{{ health_insights.total_admissions }}</div>
+                                <div class="insight-label">Admissions</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="insight-box">
+                                <div class="insight-value">
+                                    {{ health_insights.last_visit|datetime('%b %d') if health_insights.last_visit else 'N/A' }}
+                                </div>
+                                <div class="insight-label">Last Visit</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Gemini AI Insights -->
+            {% if gemini_insights %}
+            <div class="card modern-card mb-4">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-robot text-warning"></i> 🤖 Gemini AI Patient Insights</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info mb-0">
+                        <i class="bi bi-stars fs-4 me-2"></i>
+                        <div style="white-space: pre-line;">{{ gemini_insights }}</div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Personalized Health Tips -->
+            {% if health_tips %}
+            <div class="card modern-card mb-4">
+                <div class="card-header bg-gradient-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-lightbulb text-warning"></i> Personalized Health Tips</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        {% for tip in health_tips %}
+                        <li class="mb-3">
+                            <i class="bi bi-check-circle-fill text-success me-2"></i>
+                            <span style="white-space: pre-line;">{{ tip }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Medical History -->
+            <div class="card modern-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-clock-history text-info"></i> Medical History</h5>
+                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addHistoryModal">
+                        <i class="bi bi-plus-circle"></i> Add Entry
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if medical_history %}
+                        <div class="timeline">
+                            {% for history in medical_history %}
+                            <div class="timeline-item">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-content">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="mb-0">{{ history.disease }}</h6>
+                                        <small class="text-muted">{{ history.date_time|datetime }}</small>
+                                    </div>
+                                    <p class="text-muted mb-0">{{ history.treatment }}</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-4">No medical history recorded</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add History Modal -->
+<div class="modal fade" id="addHistoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Medical History</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="#">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Disease/Condition</label>
+                        <input type="text" class="form-control" name="disease" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Treatment</label>
+                        <textarea class="form-control" name="treatment" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Date & Time</label>
+                        <input type="datetime-local" class="form-control" name="date_time" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Entry</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

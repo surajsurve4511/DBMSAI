@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Operation Theatre - Hospital Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 fw-bold"><i class="bi bi-scissors text-info"></i> Operation Theatre</h1>
+            <p class="text-muted">Manage surgical operations and OT schedule</p>
+        </div>
+        <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#addOTModal">
+            <i class="bi bi-plus-circle"></i> Schedule Operation
+        </button>
+    </div>
+
+    <!-- Scheduled Operations -->
+    <div class="card modern-card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-calendar-event text-primary"></i> Scheduled Operations</h5>
+        </div>
+        <div class="card-body">
+            {% if scheduled_ops %}
+                <div class="row g-3">
+                    {% for op in scheduled_ops %}
+                    <div class="col-md-6">
+                        <div class="ot-card">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ op.patient_name }} ({{ op.age }} yrs)</h6>
+                                    <p class="text-muted mb-2">{{ op.procedure_name }}</p>
+                                    <p class="mb-0 small">
+                                        <i class="bi bi-calendar"></i> {{ op.date|datetime }}
+                                    </p>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-warning">{{ op.status }}</span>
+                                    <form method="POST" action="{{ url_for('update_ot_status', ot_id=op.ot_id) }}" class="mt-2">
+                                        <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                                            <option value="Scheduled" {% if op.status == 'Scheduled' %}selected{% endif %}>Scheduled</option>
+                                            <option value="In Progress" {% if op.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                                            <option value="Completed" {% if op.status == 'Completed' %}selected{% endif %}>Completed</option>
+                                            <option value="Cancelled" {% if op.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                                        </select>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted text-center py-3">No operations scheduled</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- All Operations -->
+    <div class="card modern-card">
+        <div class="card-header">
+            <h5 class="mb-0">All Operations</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>OT ID</th>
+                            <th>Patient</th>
+                            <th>Age</th>
+                            <th>Procedure</th>
+                            <th>Date & Time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for op in all_operations %}
+                        <tr>
+                            <td><span class="badge bg-info">{{ op.ot_id }}</span></td>
+                            <td class="fw-semibold">{{ op.patient_name }}</td>
+                            <td>{{ op.age }}</td>
+                            <td>{{ op.procedure_name }}</td>
+                            <td>{{ op.date|datetime }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'warning' if op.status == 'Scheduled' else 'primary' if op.status == 'In Progress' else 'success' if op.status == 'Completed' else 'danger' }}">
+                                    {{ op.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add OT Modal -->
+<div class="modal fade" id="addOTModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Schedule New Operation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('add_operation') }}">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Patient ID *</label>
+                            <input type="number" class="form-control" name="patient_id" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Operation Date & Time *</label>
+                            <input type="datetime-local" class="form-control" name="date" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Procedure Name *</label>
+                            <input type="text" class="form-control" name="procedure_name" required 
+                                   placeholder="e.g., Appendectomy, Cardiac Surgery">
+                            <small class="text-muted">AI will estimate operation duration</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Status *</label>
+                            <select class="form-select" name="status" required>
+                                <option value="Scheduled">Scheduled</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-info">Schedule Operation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

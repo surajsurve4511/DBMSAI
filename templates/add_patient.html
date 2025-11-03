@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Add Patient - Hospital Management System{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card modern-card">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="bi bi-person-plus text-primary"></i> Add New Patient</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('add_patient') }}">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Patient Name *</label>
+                                <input type="text" class="form-control" name="name" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Age *</label>
+                                <input type="number" class="form-control" name="age" min="0" max="150" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Gender *</label>
+                                <select class="form-select" name="gender" required>
+                                    <option value="">Select...</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Contact Information *</label>
+                                <input type="text" class="form-control" name="contact_info" placeholder="Phone, Email, Address" required>
+                            </div>
+                            <div class="col-12">
+                                <hr>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-circle"></i> Add Patient
+                                </button>
+                                <a href="{{ url_for('patients') }}" class="btn btn-secondary">
+                                    <i class="bi bi-x-circle"></i> Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

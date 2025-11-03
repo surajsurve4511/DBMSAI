@@ -1,0 +1,456 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - Hospital Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <h1 class="h2 fw-bold"><i class="bi bi-graph-up text-primary"></i> AI-Powered Analytics</h1>
+        <p class="text-muted">Data-driven insights and predictions for better healthcare management</p>
+    </div>
+
+    <!-- Optimization Suggestions -->
+    <div class="card modern-card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-lightbulb text-warning"></i> AI Optimization Suggestions</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                {% for suggestion in optimization_suggestions %}
+                <div class="col-md-6">
+                    <div class="alert alert-{{ 'danger' if suggestion.priority == 'high' else 'warning' if suggestion.priority == 'medium' else 'info' }} mb-0">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-{{ 'exclamation-triangle-fill' if suggestion.priority == 'high' else 'info-circle-fill' }} fs-4 me-3"></i>
+                            <div>
+                                <h6 class="alert-heading mb-1">{{ suggestion.category }}</h6>
+                                <p class="mb-0">{{ suggestion.message }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Bed Occupancy Forecast -->
+        <div class="col-lg-8">
+            <div class="card modern-card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-graph-up-arrow text-primary"></i> 7-Day Bed Occupancy Forecast</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="occupancyChart" height="80"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Disease Patterns -->
+        <div class="col-lg-4">
+            <div class="card modern-card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-bar-chart text-success"></i> Common Diseases</h5>
+                </div>
+                <div class="card-body">
+                    {% if disease_patterns %}
+                        <div class="disease-list">
+                            {% for disease in disease_patterns %}
+                            <div class="disease-item">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-semibold">{{ disease.disease }}</span>
+                                    <span class="badge bg-primary">{{ disease.frequency }}</span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-success" role="progressbar" 
+                                         style="width: {{ disease.percentage }}%" 
+                                         aria-valuenow="{{ disease.percentage }}" 
+                                         aria-valuemin="0" aria-valuemax="100">
+                                    </div>
+                                </div>
+                                <small class="text-muted">{{ disease.percentage }}% of total cases</small>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-4">No disease data available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Gemini AI Trends -->
+        {% if gemini_trends %}
+        <div class="col-lg-12">
+            <div class="card modern-card">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-robot text-warning"></i> 🤖 Gemini AI Trend Analysis</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-stars fs-4 me-2"></i>
+                        <div style="white-space: pre-line;">{{ gemini_trends }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Patient Demographics -->
+        <div class="col-lg-6">
+            <div class="card modern-card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-people text-primary"></i> Age Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="ageChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card modern-card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-gender-ambiguous text-success"></i> Gender Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="genderChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Admissions Trend -->
+        <div class="col-lg-12">
+            <div class="card modern-card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-calendar3 text-info"></i> Monthly Admission Trends</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="admissionsChart" height="80"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Metrics Cards -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card modern-card text-center">
+                <div class="card-body">
+                    <i class="bi bi-clock-history fs-1 text-primary mb-2"></i>
+                    <h3 class="mb-0">{{ avg_stay.avg_stay_days|round(1) }}</h3>
+                    <p class="text-muted mb-0">Average Stay (days)</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="card modern-card text-center">
+                <div class="card-body">
+                    <i class="bi bi-arrow-repeat fs-1 text-warning mb-2"></i>
+                    <h3 class="mb-0">{{ readmission_rate.readmission_rate|round(1) }}%</h3>
+                    <p class="text-muted mb-0">Readmission Rate</p>
+                    <small class="text-muted">{{ readmission_rate.readmissions }} of {{ readmission_rate.total_patients }}</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="card modern-card text-center">
+                <div class="card-body">
+                    <i class="bi bi-activity fs-1 text-success mb-2"></i>
+                    <h3 class="mb-0">{{ operation_stats.completed + operation_stats.scheduled + operation_stats.cancelled }}</h3>
+                    <p class="text-muted mb-0">Total Operations</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="card modern-card text-center">
+                <div class="card-body">
+                    <i class="bi bi-people-fill fs-1 text-info mb-2"></i>
+                    <h3 class="mb-0">{{ age_distribution|sum(attribute='count') }}</h3>
+                    <p class="text-muted mb-0">Total Patients</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Operation Statistics -->
+        <div class="col-lg-6">
+            <div class="card modern-card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-hospital text-danger"></i> Operation Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h4 class="text-success">{{ operation_stats.completed }}</h4>
+                            <small class="text-muted">Completed</small>
+                        </div>
+                        <div class="col-4">
+                            <h4 class="text-warning">{{ operation_stats.scheduled }}</h4>
+                            <small class="text-muted">Scheduled</small>
+                        </div>
+                        <div class="col-4">
+                            <h4 class="text-danger">{{ operation_stats.cancelled }}</h4>
+                            <small class="text-muted">Cancelled</small>
+                        </div>
+                    </div>
+                    <canvas id="operationChart" class="mt-3" height="150"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Staff Workload -->
+        <div class="col-lg-6">
+            <div class="card modern-card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-person-badge text-secondary"></i> Staff Workload Analysis</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive" style="max-height: 300px;">
+                        <table class="table table-sm table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Staff Name</th>
+                                    <th>OPD</th>
+                                    <th>OT</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for staff in staff_workload[:10] %}
+                                <tr>
+                                    <td>{{ staff.staff_name }}</td>
+                                    <td><span class="badge bg-primary">{{ staff.opd_count }}</span></td>
+                                    <td><span class="badge bg-info">{{ staff.ot_count }}</span></td>
+                                    <td><span class="badge bg-dark">{{ staff.total_workload }}</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Predictive Insights -->
+        <div class="col-lg-12">
+            <div class="card modern-card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-clipboard-data text-info"></i> Bed Occupancy Predictions</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Predicted Occupancy</th>
+                                    <th>Predicted Patient Count</th>
+                                    <th>Status</th>
+                                    <th>Recommendation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pred in bed_predictions %}
+                                <tr>
+                                    <td class="fw-semibold">{{ pred.date }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress flex-grow-1 me-2" style="height: 20px;">
+                                                <div class="progress-bar bg-{{ 'danger' if pred.predicted_occupancy > 85 else 'warning' if pred.predicted_occupancy > 70 else 'success' }}" 
+                                                     style="width: {{ pred.predicted_occupancy }}%">
+                                                    {{ pred.predicted_occupancy }}%
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ pred.predicted_count }} patients</td>
+                                    <td>
+                                        <span class="badge bg-{{ 'danger' if pred.predicted_occupancy > 85 else 'warning' if pred.predicted_occupancy > 70 else 'success' }}">
+                                            {% if pred.predicted_occupancy > 85 %}Critical{% elif pred.predicted_occupancy > 70 %}High{% else %}Normal{% endif %}
+                                        </span>
+                                    </td>
+                                    <td class="small">
+                                        {% if pred.predicted_occupancy > 85 %}
+                                            Arrange additional capacity
+                                        {% elif pred.predicted_occupancy > 70 %}
+                                            Monitor closely
+                                        {% else %}
+                                            Normal operations
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Bed Occupancy Forecast Chart
+const predictions = {{ bed_predictions|tojson }};
+const dates = predictions.map(p => new Date(p.date).toLocaleDateString('en-US', {month: 'short', day: 'numeric'}));
+const occupancy = predictions.map(p => p.predicted_occupancy);
+
+const ctx = document.getElementById('occupancyChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: dates,
+        datasets: [{
+            label: 'Predicted Occupancy (%)',
+            data: occupancy,
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                display: true,
+                position: 'top'
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%';
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                    callback: function(value) {
+                        return value + '%';
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Age Distribution Chart
+const ageData = {{ age_distribution|tojson }};
+const ageCtx = document.getElementById('ageChart').getContext('2d');
+new Chart(ageCtx, {
+    type: 'bar',
+    data: {
+        labels: ageData.map(d => d.age_group),
+        datasets: [{
+            label: 'Number of Patients',
+            data: ageData.map(d => d.count),
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.7)',
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(255, 206, 86, 0.7)',
+                'rgba(75, 192, 192, 0.7)',
+                'rgba(153, 102, 255, 0.7)'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// Gender Distribution Chart
+const genderData = {{ gender_distribution|tojson }};
+const genderCtx = document.getElementById('genderChart').getContext('2d');
+new Chart(genderCtx, {
+    type: 'doughnut',
+    data: {
+        labels: genderData.map(d => d.gender),
+        datasets: [{
+            data: genderData.map(d => d.count),
+            backgroundColor: [
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(255, 99, 132, 0.7)',
+                'rgba(255, 206, 86, 0.7)'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Monthly Admissions Chart
+const admissionsData = {{ monthly_admissions|tojson }};
+const admissionsCtx = document.getElementById('admissionsChart').getContext('2d');
+new Chart(admissionsCtx, {
+    type: 'line',
+    data: {
+        labels: admissionsData.map(d => d.month),
+        datasets: [{
+            label: 'Admissions',
+            data: admissionsData.map(d => d.admission_count),
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: { display: true }
+        },
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// Operation Statistics Chart
+const opStats = {{ operation_stats|tojson }};
+const opCtx = document.getElementById('operationChart').getContext('2d');
+new Chart(opCtx, {
+    type: 'pie',
+    data: {
+        labels: ['Completed', 'Scheduled', 'Cancelled'],
+        datasets: [{
+            data: [opStats.completed, opStats.scheduled, opStats.cancelled],
+            backgroundColor: [
+                'rgba(75, 192, 192, 0.7)',
+                'rgba(255, 206, 86, 0.7)',
+                'rgba(255, 99, 132, 0.7)'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}OPD Appointments - Hospital Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 fw-bold"><i class="bi bi-calendar-check text-success"></i> OPD Appointments</h1>
+            <p class="text-muted">Manage out-patient department appointments</p>
+        </div>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addAppointmentModal">
+            <i class="bi bi-plus-circle"></i> Schedule Appointment
+        </button>
+    </div>
+
+    <!-- Today's Appointments -->
+    <div class="card modern-card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-calendar-day text-primary"></i> Today's Appointments</h5>
+        </div>
+        <div class="card-body">
+            {% if today_appointments %}
+                <div class="row g-3">
+                    {% for appt in today_appointments %}
+                    <div class="col-md-6">
+                        <div class="appointment-card">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">{{ appt.patient_name }}</h6>
+                                    <p class="text-muted mb-1">
+                                        <i class="bi bi-person-badge"></i> Dr. {{ appt.staff_name }}
+                                    </p>
+                                    <p class="mb-0 small">{{ appt.issue_description[:80] }}...</p>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-success">{{ appt.appointment_date|datetime('%I:%M %p') }}</span>
+                                    <p class="mb-0 small text-muted mt-1">ID: {{ appt.app_id }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted text-center py-3">No appointments scheduled for today</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- All Appointments -->
+    <div class="card modern-card">
+        <div class="card-header">
+            <h5 class="mb-0">All Appointments</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Patient</th>
+                            <th>Doctor</th>
+                            <th>Issue</th>
+                            <th>Appointment Date</th>
+                            <th>Next Visit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appt in appointments %}
+                        <tr>
+                            <td><span class="badge bg-success">{{ appt.app_id }}</span></td>
+                            <td class="fw-semibold">{{ appt.patient_name }}</td>
+                            <td>Dr. {{ appt.staff_name }}</td>
+                            <td>{{ appt.issue_description[:50] }}...</td>
+                            <td>{{ appt.appointment_date|datetime }}</td>
+                            <td>
+                                {% if appt.next_visit_date %}
+                                    {{ appt.next_visit_date|datetime }}
+                                {% else %}
+                                    <span class="text-muted">Not set</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Appointment Modal -->
+<div class="modal fade" id="addAppointmentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Schedule New Appointment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('add_opd_appointment') }}">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Patient ID *</label>
+                            <input type="number" class="form-control" name="patient_id" required>
+                            <small class="text-muted">Enter existing patient ID</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Doctor *</label>
+                            <select class="form-select" name="staff_id" required>
+                                <option value="">Select Doctor...</option>
+                                {% for staff in staff_list %}
+                                <option value="{{ staff.staff_id }}">Dr. {{ staff.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Issue Description *</label>
+                            <textarea class="form-control" name="issue_description" rows="3" required></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Appointment Date & Time *</label>
+                            <input type="datetime-local" class="form-control" name="appointment_date" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Next Visit Date (Optional)</label>
+                            <input type="datetime-local" class="form-control" name="next_visit_date">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Schedule Appointment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
